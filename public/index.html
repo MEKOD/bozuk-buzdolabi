@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bozuk Buzdolabı</title>
+  <meta name="theme-color" content="#ff7a1a" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ÜST BAR -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <a class="brand" href="#/fridge" aria-label="Bozuk Buzdolabı">
+        <span class="brand-badge" aria-hidden="true">
+          <!-- Fridge Logo (inline SVG) -->
+          <svg viewBox="0 0 40 40" role="img" aria-label="Bozuk Buzdolabı logosu">
+            <defs>
+              <linearGradient id="bbGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0"  stop-color="#ff9a50"/>
+                <stop offset="1"  stop-color="#ff7a1a"/>
+              </linearGradient>
+              <linearGradient id="bbGrad2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0"  stop-color="#fff" stop-opacity="0.85"/>
+                <stop offset="1"  stop-color="#fff" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Yuvarlak arka plaka -->
+            <circle cx="20" cy="20" r="18" fill="url(#bbGrad)"/>
+            <!-- Hafif parlama -->
+            <ellipse cx="14" cy="10" rx="8" ry="4" fill="url(#bbGrad2)"/>
+
+            <!-- Buzdolabı gövde -->
+            <g transform="translate(10,9)">
+              <rect x="0.8" y="0.8" width="18.4" height="20.4" rx="3.6"
+                    fill="#fff" stroke="rgba(0,0,0,.06)" stroke-width="1.6"/>
+              <!-- Kapak çizgisi -->
+              <line x1="0.8" y1="10.6" x2="19.2" y2="10.6"
+                    stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+              <!-- Kulp üst -->
+              <rect x="2.6" y="4.2" width="2.2" height="3.8" rx="1.1" fill="url(#bbGrad)"/>
+              <!-- Kulp alt -->
+              <rect x="2.6" y="13.8" width="2.2" height="3.8" rx="1.1" fill="url(#bbGrad)"/>
+              <!-- Ayaklar -->
+              <rect x="2.8"  y="22.2" width="3.2" height="1.8" rx="0.6" fill="#fff"/>
+              <rect x="14.0" y="22.2" width="3.2" height="1.8" rx="0.6" fill="#fff"/>
+            </g>
+          </svg>
+        </span>
+
+        <span class="brand-text">
+          <strong>Bozuk Buzdolabı</strong>
+          <em>Malzemeleri yaz → profesyonel tarif çıkar</em>
+        </span>
+      </a>
+
+<nav class="nav-links" aria-label="Sekmeler">
+  <a class="tab" href="#/fridge">Buzdolabım</a>
+  <a class="tab" href="#/free">Serbest Mod</a>
+  <a class="tab" href="#/diet">Diyet</a>
+  <a class="tab" href="#/market">Market</a>
+</nav>
+
+</nav>
+
+<!-- JS (SIRASI ÖNEMLİ) -->
+<script src="js/api.js"></script>
+<script src="js/pages/fridge.js"></script>
+<script src="js/pages/diet.js"></script>
+<script src="js/pages/market.js"></script>
+<script src="js/app.js"></script>
+
+      </nav>
+
+      <div class="header-actions">
+        <button id="toggleTheme" class="btn ghost" aria-label="Tema değiştir">🌙</button>
+        <a id="aboutBtn" class="btn outline" href="#/about">Hakkında</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ANA İÇERİK -->
+  <main id="app-main" class="container" tabindex="-1"></main>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- ENV -->
+  <script>
+    window.env = { PORTAL_NAME: "Bozuk Buzdolabı", GEMINI_API_KEY: "" };
+  </script>
+
+  <!-- JS (SIRASI ÖNEMLİ) -->
+  <script src="js/api.js"></script>
+  <script src="js/pages/fridge.js"></script>
+  <script src="js/pages/diet.js"></script>
+  <script src="js/pages/market.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Aktif sekme işaretleme -->
+  <script>
+    (function(){
+      function setActive(){
+        const h = location.hash || "#/fridge";
+        document.querySelectorAll(".nav-links a").forEach(a=>{
+          a.classList.toggle("active", a.getAttribute("href") && h.startsWith(a.getAttribute("href")));
+        });
+      }
+      addEventListener("hashchange", setActive);
+      addEventListener("DOMContentLoaded", setActive);
+    })();
+  </script>
+
+  <!-- Service Worker Kaydı -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/service-worker.js")
+          .then(reg => console.log("SW registered", reg))
+          .catch(err => console.warn("SW fail", err));
+      });
+    }
+  </script>
+</body>
+</html>
