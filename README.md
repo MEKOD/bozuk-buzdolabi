@@ -1,4 +1,4 @@
-# bozuk-buzdolabi
+# bozuk-buzdolabiiii
 Evdeki malzemelerden AI destekli tarif üreten web uygulaması
 # Bozuk Buzdolabı
 
