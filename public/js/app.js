@@ -1,4 +1,3 @@
-
 // Bozuk Buzdolabı — App + store + Gemini-first API + router + yardımcılar
 
 (function () {
@@ -369,7 +368,7 @@ Adımlar:
 
   // --- generateRecipe: Gemini → backend(/api/generate) → eski window.api → mock ---
   (function patchGenerateRecipe() {
-    const orig = window.api?.generateRecipe;
+    const prev = window.api?.generateRecipe;
     window.api = window.api || {};
 
     window.api.generateRecipe = async function (payload = {}) {
@@ -405,8 +404,8 @@ Adımlar:
       }
 
       // 3) Eski front mock api.js
-      if (!raw && typeof orig === "function") {
-        try { raw = await orig(payload); } catch (e) { console.error("orig api", e); }
+      if (!raw && typeof prev === "function") {
+        try { raw = await prev(payload); } catch (e) { console.error("orig api", e); }
       }
 
       // 4) Tamamen local mock
@@ -431,70 +430,70 @@ Adımlar:
     return Math.round(kcal);
   }
 
-async function geminiDayPlan(targetKcal, restrictions) {
-  try {
-    const res = await fetch("/api/diet-plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile: { targetKcal, restrictions } })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return (data && typeof data === "object") ? data : null;
+  async function geminiDayPlan(targetKcal, restrictions) {
+    try {
+      const res = await fetch("/api/diet-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: { targetKcal, restrictions } })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return (data && typeof data === "object") ? data : null;
+      }
+    } catch (e) {
+      console.error("dietPlan api", e);
     }
-  } catch (e) {
-    console.error("dietPlan api", e);
-  }
-  return null;
-}
-
-(function patchDietPlan() {
-window.api.dietPlan = async function (profile = {}) {
-  // 1) Varsa eski custom api.dietPlan'ı dene
-  const orig = window.api?.dietPlan;
-  if (typeof orig === "function" && orig !== window.api.dietPlan) {
-    try { const r = await orig(profile); if (r) return r; } catch {}
+    return null;
   }
 
-  // 2) Backend (ÖNERİLEN): server.js -> /api/diet/plan
-  let dayPlan = null;
-  try {
-    const res = await fetch("/api/diet/plan", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ profile })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data?.dayPlan)) dayPlan = data.dayPlan;
-    }
-  } catch {}
+  (function patchDietPlan() {
+    const prev = window.api?.dietPlan;
+    window.api = window.api || {};
 
-  // 3) Backend başarısızsa basit fallback
-  if (!dayPlan) {
-    const mk = (meal) => ({
-      meal,
-      recipes: [{
-        id: App.utils.id("r"),
-        title: `${meal} — pratik`,
-        summary: "Kısa özet.",
-        meta: { time: 15, servings: 1 },
-        body: `Malzemeler:\n- yumurta\n- ekmek\n\nAdımlar:\n1) Hazırlık\n2) Pişir\n3) Ye`
-      }]
-    });
-    dayPlan = [mk("Kahvaltı"), mk("Öğle"), mk("Akşam")];
-   }
+    window.api.dietPlan = async function (profile = {}) {
+      // 1) Varsa eski custom api.dietPlan'ı dene
+      if (typeof prev === "function") {
+        try { const r = await prev(profile); if (r) return r; } catch {}
+      }
 
+      // 2) Backend (ÖNERİLEN): server.js -> /api/diet/plan
+      let dayPlan = null;
+      try {
+        const res = await fetch("/api/diet/plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profile })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data?.dayPlan)) dayPlan = data.dayPlan;
+        }
+      } catch {}
 
+      // 3) Backend başarısızsa basit fallback
+      if (!dayPlan) {
+        const mk = (meal) => ({
+          meal,
+          recipes: [{
+            id: App.utils.id("r"),
+            title: `${meal} — pratik`,
+            summary: "Kısa özet.",
+            meta: { time: 15, servings: 1 },
+            body: `Malzemeler:\n- yumurta\n- ekmek\n\nAdımlar:\n1) Hazırlık\n2) Pişir\n3) Ye`
+          }]
+        });
+        dayPlan = [mk("Kahvaltı"), mk("Öğle"), mk("Akşam")];
+      }
 
-  const targetKcal = computeKcal(profile);
-  const out = { targetKcal, dayPlan };
-  window.store.state._lastDietPlan = out;
-  window.store.state._lastDietProfile = profile;
-  window.store.save();
-  return out;
-};
-
+      const targetKcal = computeKcal(profile);
+      const out = { targetKcal, dayPlan };
+      window.store.state._lastDietPlan = out;
+      window.store.state._lastDietProfile = profile;
+      window.store.save();
+      return out;
+    };
+  })();
 
   // ------------------- MARKET HELPERS -------------------
   if (typeof window.api?.mergeShoppingList !== "function") {
@@ -523,51 +522,49 @@ window.api.dietPlan = async function (profile = {}) {
     };
   }
 
-  
-// ------------------- ROUTER -------------------
-const Router = {
-  routes: {
-    "#/fridge": () => window.renderFridge && window.renderFridge(),
-    "#/free"  : () => window.renderFridge && window.renderFridge(), // alias
-    "#/diet"  : () => window.renderDiet   && window.renderDiet(),
-    "#/market": () => window.renderMarket && window.renderMarket(),
-    "#/"      : () => window.renderFridge && window.renderFridge()
-  },
-  init() {
-    window.addEventListener("hashchange", () => this.render());
-    if (!location.hash) location.hash = "#/fridge";
-    this.render();
-  },
-  render() {
-    const app  = document.getElementById("app-main");
-    if (!app) return console.error("#app-main yok");
+  // ------------------- ROUTER -------------------
+  const Router = {
+    routes: {
+      "#/fridge": () => window.renderFridge && window.renderFridge(),
+      "#/free"  : () => window.renderFridge && window.renderFridge(), // alias
+      "#/diet"  : () => window.renderDiet   && window.renderDiet(),
+      "#/market": () => window.renderMarket && window.renderMarket(),
+      "#/"      : () => window.renderFridge && window.renderFridge()
+    },
+    init() {
+      window.addEventListener("hashchange", () => this.render());
+      if (!location.hash) location.hash = "#/fridge";
+      this.render();
+    },
+    render() {
+      const app  = document.getElementById("app-main");
+      if (!app) return console.error("#app-main yok");
 
-    const path = location.hash || "#/fridge";
-    const fn   = this.routes[path];
+      const path = location.hash || "#/fridge";
+      const fn   = this.routes[path];
 
-    // Plan ya da bilinmeyen rota -> fridge
-    if (!fn) {
-      location.hash = "#/fridge";
-      return;
+      // Bilinmeyen rota -> fridge
+      if (!fn) {
+        location.hash = "#/fridge";
+        return;
+      }
+
+      app.innerHTML = "";
+      try {
+        const node = fn();
+        if (node instanceof Node) app.appendChild(node);
+        else if (typeof node === "string") app.innerHTML = node;
+        else app.innerHTML = `<div class="card">Sayfa yüklenemedi.</div>`;
+      } catch (e) {
+        console.error(e);
+        app.innerHTML = `<div class="card"><b>Hata:</b> ${e?.message || e}</div>`;
+      }
+
+      document.querySelectorAll(".nav-links a, .mode-tabs a").forEach(a => {
+        a.classList.toggle("active", a.getAttribute("href") === path);
+      });
     }
-
-    app.innerHTML = "";
-    try {
-      const node = fn();
-      if (node instanceof Node) app.appendChild(node);
-      else if (typeof node === "string") app.innerHTML = node;
-      else app.innerHTML = `<div class="card">Sayfa yüklenemedi.</div>`;
-    } catch (e) {
-      console.error(e);
-      app.innerHTML = `<div class="card"><b>Hata:</b> ${e?.message || e}</div>`;
-    }
-
-    document.querySelectorAll(".nav-links a, .mode-tabs a").forEach(a => {
-      a.classList.toggle("active", a.getAttribute("href") === path);
-    });
-  }
-};
-
+  };
 
   // ------------------- STARTUP & FETCH GUARD -------------------
   window.addEventListener("DOMContentLoaded", () => {
@@ -620,5 +617,5 @@ const Router = {
     };
 
     console.log("✅ App hazır — Gemini/Backend fallback, normalize, store & router + tarif modalı aktif.");
-  })();
-
+  });
+})();
