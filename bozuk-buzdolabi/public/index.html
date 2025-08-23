@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="tr" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bozuk Buzdolabı</title>
+    <meta name="x-build" content="BB-DEV-INDEX-2025-08-24" />
+    <link rel="stylesheet" href="/styles.css?v=dev1">
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="app-nav">
+      <div class="nav-inner">
+        <div class="brand">
+          <span class="logo">🥕</span>
+          <div class="title">Bozuk Buzdolabı</div>
+          <div class="subtitle">Malzemeleri yaz → profesyonel tarif çıkar</div>
+        </div>
+
+        <nav class="nav-links">
+          <a href="#/fridge" class="active">Buzdolabım</a>
+          <a href="#/free">Serbest Mod</a>
+          <a href="#/diet">Diyet</a>
+          <a href="#/market">Market</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button id="toggleTheme" class="btn small" title="Tema">🌙</button>
+          <a id="aboutBtn" class="btn small" href="#/about">Hakkında</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ANA KAPSAYICI -->
+    <main id="app-main" aria-live="polite"></main>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- SW cache dev’de sorun çıkarmasın -->
+    <script>
+      if (location.hostname === "localhost" && "serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+      }
+    </script>
+
+    <!-- APP CORE -->
+    <script src="/app.js?v=dev1" defer></script>
+
+    <!-- SAYFA RENDER FONKSİYONLARI -->
+    <script defer>
+      // Basit sayfa geçiş etiketi (app.js Router, bu fonksiyonları çağırır)
+      // Bu dosyada renderFridge/renderDiet/renderMarket zaten app.js/önceki snippet'lerinle tanımlıysa
+      // aşağıdaki blok gerekmeyebilir. Yine de boşsa fallback bırakıyoruz:
+      window.renderFridge ||= function(){ return document.createElement("div"); };
+      window.renderDiet   ||= function(){ return document.createElement("div"); };
+      window.renderMarket ||= function(){ return document.createElement("div"); };
+    </script>
+  </body>
+</html>
