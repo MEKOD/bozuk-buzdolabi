@@ -1,115 +1,418 @@
-<!DOCTYPE html>
-<html lang="tr" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bozuk Buzdolabı</title>
-  <meta name="theme-color" content="#ff7a1a" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-
-  <!-- ÜST BAR -->
-  <header class="app-header">
-    <div class="container header-inner">
-      <a class="brand" href="#/fridge" aria-label="Bozuk Buzdolabı">
-<a class="brand" href="#/fridge" aria-label="Bozuk Buzdolabı">
-  <span class="brand-badge" aria-hidden="true">
-    <!-- Fridge Logo (inline SVG) -->
-    <svg viewBox="0 0 40 40" role="img" aria-label="Bozuk Buzdolabı logosu">
-      <defs>
-        <linearGradient id="bbGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0"  stop-color="#ff9a50"/>
-          <stop offset="1"  stop-color="#ff7a1a"/>
-        </linearGradient>
-        <linearGradient id="bbGrad2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0"  stop-color="#fff" stop-opacity="0.85"/>
-          <stop offset="1"  stop-color="#fff" stop-opacity="0.0"/>
-        </linearGradient>
-      </defs>
-
-      <!-- Yuvarlak arka plaka -->
-      <circle cx="20" cy="20" r="18" fill="url(#bbGrad)"/>
-      <!-- Hafif parlama -->
-      <ellipse cx="14" cy="10" rx="8" ry="4" fill="url(#bbGrad2)"/>
-
-      <!-- Buzdolabı gövde -->
-      <g transform="translate(10,9)">
-        <rect x="0.8" y="0.8" width="18.4" height="20.4" rx="3.6"
-              fill="#fff" stroke="rgba(0,0,0,.06)" stroke-width="1.6"/>
-        <!-- Kapak çizgisi -->
-        <line x1="0.8" y1="10.6" x2="19.2" y2="10.6"
-              stroke="rgba(0,0,0,.06)" stroke-width="1"/>
-        <!-- Kulp üst -->
-        <rect x="2.6" y="4.2" width="2.2" height="3.8" rx="1.1" fill="url(#bbGrad)"/>
-        <!-- Kulp alt -->
-        <rect x="2.6" y="13.8" width="2.2" height="3.8" rx="1.1" fill="url(#bbGrad)"/>
-        <!-- Ayaklar -->
-        <rect x="2.8"  y="22.2" width="3.2" height="1.8" rx="0.6" fill="#fff"/>
-        <rect x="14.0" y="22.2" width="3.2" height="1.8" rx="0.6" fill="#fff"/>
-      </g>
-    </svg>
-  </span>
-
-  <span class="brand-text">
-    <strong>Bozuk Buzdolabı</strong>
-    <em>Malzemeleri yaz → profesyonel tarif çıkar</em>
-  </span>
-</a>
-
-        <div class="brand-text">
-          <strong>Bozuk Buzdolabı</strong>
-          <em>Malzemeleri yaz → profesyonel tarif çıkar</em>
-        </div>
-      </a>
-
-      <nav class="nav-links" aria-label="Sekmeler">
-        <a class="tab" href="#/fridge">Buzdolabım</a>
-        <a class="tab" href="#/free">Serbest Mod</a>
-        <a class="tab" href="#/diet">Diyet</a>
-        <a class="tab" href="#/plan">Haftalık Plan</a>
-        <a class="tab" href="#/market">Market</a>
-      </nav>
-
-      <div class="header-actions">
-        <button id="toggleTheme" class="btn ghost" aria-label="Tema değiştir">🌙</button>
-        <a id="aboutBtn" class="btn outline" href="#/about">Hakkında</a>
-      </div>
-    </div>
-  </header>
-
-  <!-- ANA İÇERİK: app.js burayı doldurur -->
-  <main id="app-main" class="container" tabindex="-1"></main>
-
-  <!-- TOAST (app.js -> showToast) -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-  <!-- ENV -->
-  <script>
-    window.env = { PORTAL_NAME: "Bozuk Buzdolabı", GEMINI_API_KEY: "" };
-  </script>
-
-  <!-- JS (SIRASI ÖNEMLİ) -->
-  <script src="js/api.js"></script>
-  <!-- header.js yüklemeyelim; kendi header’ımız var ve çakışma çıkarır -->
-  <script src="js/pages/fridge.js"></script>
-  <script src="js/pages/diet.js"></script>
-  <script src="js/pages/plan.js"></script>
-  <script src="js/pages/market.js"></script>
-  <script src="js/app.js"></script>
-
-  <!-- Üst sekmelerin aktif sınıfını app.js ile uyumlu tut (UI-only) -->
-  <script>
-    (function(){
-      function setActive(){
-        const h = location.hash || "#/fridge";
-        document.querySelectorAll(".nav-links a").forEach(a=>{
-          a.classList.toggle("active", a.getAttribute("href") && h.startsWith(a.getAttribute("href")));
-        });
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bozuk Buzdolabı</title>
+    <!-- (İstersen) manifest/linkleri burada ekleriz -->
+    <style>
+      /* --- Minimum iskelet, görünümü sonra güzelleştireceğiz --- */
+      :root { --bg:#0b0b0c; --fg:#f8f8f8; --muted:#9aa0a6; --card:#151518; --accent:#4ade80; --danger:#ef4444; }
+      [data-theme="light"] :root { --bg:#fff; --fg:#111; --muted:#666; --card:#f6f6f7; --accent:#16a34a; }
+      body { margin:0; background:var(--bg); color:var(--fg); font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+      .app-nav { position:sticky; top:0; z-index:50; backdrop-filter:saturate(1.2) blur(8px); background:color-mix(in oklab, var(--bg) 80%, transparent); border-bottom:1px solid color-mix(in oklab, var(--fg) 12%, transparent); }
+      .nav-inner { max-width:1040px; margin:0 auto; padding:10px 14px; display:flex; align-items:center; gap:12px; }
+      .brand { font-weight:700; letter-spacing:.2px; }
+      .nav-links { display:flex; gap:10px; margin-left:auto; }
+      .nav-links a { text-decoration:none; color:var(--muted); padding:8px 10px; border-radius:10px; }
+      .nav-links a.active { color:var(--fg); background:color-mix(in oklab, var(--fg) 10%, transparent); }
+      main { max-width:880px; margin:0 auto; padding:14px; }
+      .card { background:var(--card); border:1px solid color-mix(in oklab, var(--fg) 12%, transparent); border-radius:14px; padding:14px; }
+      .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+      .grid { display:grid; gap:12px; }
+      .grid.recipes { grid-template-columns: 1fr; }
+      @media (min-width: 720px) { .grid.recipes { grid-template-columns: 1fr 1fr; } }
+      input[type=text], input[type=number], select, textarea {
+        width:100%; padding:12px 12px; border-radius:12px; border:1px solid color-mix(in oklab, var(--fg) 15%, transparent);
+        background:transparent; color:inherit; outline:none;
       }
-      addEventListener("hashchange", setActive);
-      addEventListener("DOMContentLoaded", setActive);
-    })();
-  </script>
-</body>
+      textarea { min-height:110px; resize:vertical; }
+      .btn { padding:12px 14px; border-radius:12px; border:1px solid color-mix(in oklab, var(--fg) 20%, transparent); background:transparent; color:inherit; cursor:pointer; }
+      .btn.primary { background:var(--accent); color:#081108; border-color:transparent; }
+      .btn.small { padding:8px 10px; border-radius:10px; font-size:13px; }
+      .muted { color:var(--muted); }
+      .chips { display:flex; flex-wrap:wrap; gap:8px; }
+      .chip { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border:1px dashed color-mix(in oklab, var(--fg) 20%, transparent); border-radius:999px; }
+      .chip button { border:0; background:transparent; color:var(--muted); cursor:pointer; }
+      .section-title { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:18px; margin-bottom:8px; }
+      .badge { display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid color-mix(in oklab, var(--fg) 24%, transparent); font-size:12px; color:var(--muted); }
+      .recipe { display:flex; flex-direction:column; gap:10px; }
+      .recipe h3 { margin:0; font-size:16px; }
+      .recipe .meta { display:flex; gap:6px; flex-wrap:wrap; }
+      .actions { display:flex; gap:8px; flex-wrap:wrap; }
+      .center { text-align:center; }
+      .spinner { display:inline-block; width:18px; height:18px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; vertical-align:-3px; animation:spin .8s linear infinite; }
+      @keyframes spin { to { transform:rotate(360deg) } }
+      .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:#111; color:#fff; padding:10px 14px; border-radius:12px; opacity:0; pointer-events:none; transition:opacity .25s; }
+      .toast.show { opacity:1; pointer-events:auto; }
+      .empty { text-align:center; padding:18px; color:var(--muted); }
+      .kicker { font-weight:600; color:var(--muted); margin-bottom:6px; }
+      .soft { background:color-mix(in oklab, var(--fg) 5%, transparent); padding:10px; border-radius:12px; }
+      .right { margin-left:auto; }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="app-nav">
+      <div class="nav-inner">
+        <div class="brand">Bozuk Buzdolabı</div>
+        <nav class="nav-links">
+          <a href="#/fridge">Buzdolabı</a>
+          <a href="#/diet">Diyet</a>
+          <a href="#/market">Market</a>
+        </nav>
+        <button id="toggleTheme" class="btn small" title="Tema">Tema</button>
+      </div>
+    </header>
+
+    <!-- APP ROOT -->
+    <main id="app-main" aria-live="polite"></main>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <!-- CORE APP (gönderdiğin dosya) -->
+    <script src="app.js" defer></script>
+
+    <!-- PAGES: renderFridge / renderDiet / renderMarket -->
+    <script defer>
+      // ---------- Shared helpers ----------
+      function el(tag, attrs={}, children=[]) {
+        const n = document.createElement(tag);
+        for (const [k,v] of Object.entries(attrs||{})) {
+          if (k === "class") n.className = v;
+          else if (k === "text") n.textContent = v;
+          else if (k.startsWith("on") && typeof v === "function") n.addEventListener(k.slice(2), v);
+          else n.setAttribute(k, v);
+        }
+        (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c => n.appendChild(c instanceof Node ? c : document.createTextNode(String(c))));
+        return n;
+      }
+      function badge(text){ return el("span", { class:"badge", text }); }
+      function loadingNode(text="Yükleniyor..."){ return el("div", { class:"center muted" }, [ el("span",{class:"spinner"})," ", text ]); }
+      function emptyNode(text="Henüz içerik yok."){ return el("div", { class:"empty", text }); }
+
+      // ---------- Pantry (chips) controls ----------
+      function addPantryItem(name){
+        name = (name||"").trim();
+        if (!name) return;
+        const arr = window.store.state.pantry || [];
+        if (!arr.find(x => App.utils.norm(x) === App.utils.norm(name))) {
+          arr.push(name);
+          window.store.save();
+        }
+        document.dispatchEvent(new CustomEvent("pantryChanged"));
+      }
+      function removePantryItem(name){
+        const arr = window.store.state.pantry || [];
+        const i = arr.findIndex(x => App.utils.norm(x) === App.utils.norm(name));
+        if (i>=0) { arr.splice(i,1); window.store.save(); }
+        document.dispatchEvent(new CustomEvent("pantryChanged"));
+      }
+      function pantryChips(){
+        const wrap = el("div", { class:"chips", id:"pantry-chips" });
+        const items = window.store.state.pantry || [];
+        if (!items.length) return emptyNode("Henüz malzeme eklenmedi.");
+        items.forEach(n => {
+          wrap.appendChild(
+            el("span", { class:"chip", "data-name": n }, [
+              el("span", { text:n }),
+              el("button", { title:"Kaldır", onclick:()=>removePantryItem(n) }, "×")
+            ])
+          );
+        });
+        return wrap;
+      }
+
+      // ---------- RECIPE CARDS ----------
+      function recipeCard(recipe, opts={}) {
+        const title = recipe.title || "Tarif";
+        const meta  = recipe.meta || {};
+        const openAttrs = { "data-recipe-json": JSON.stringify(recipe) }; // app.js global click delegesi modal açacak
+
+        const header = el("div", { class:"row" }, [
+          el("h3", { text:title }),
+          el("div", { class:"right meta" }, [
+            meta.time ? badge(`~${meta.time} dk`) : null,
+            meta.servings ? badge(`${meta.servings} p`) : null,
+            meta.budget ? badge(meta.budget) : null
+          ])
+        ]);
+        const summary = el("div", { class:"muted soft" }, recipe.summary || "Kısa özet.");
+
+        const actions = el("div", { class:"actions" }, [
+          el("button", { class:"btn small", ...openAttrs }, "Görüntüle"),
+          el("button", { class:"btn small", onclick:()=>App.toggleSave(recipe) }, App.isSaved(recipe.id) ? "Kaydı Sil" : "Kaydet"),
+          opts.missing && opts.missing.length
+            ? el("button", { class:"btn small", onclick:()=>addMissingToCart(opts.missing) }, "Eksikleri Sepete Ekle")
+            : null
+        ]);
+
+        return el("div", { class:"card recipe", ...openAttrs }, [ header, summary, actions ]);
+      }
+
+      function addMissingToCart(missing=[]) {
+        const cart = window.store.state.cart || (window.store.state.cart = []);
+        missing.forEach(n => {
+          const key = App.utils.norm(n) + "|";
+          const i = cart.findIndex(it => (App.utils.norm(it.name)+"|"+(it.unit||""))===key);
+          if (i>=0) cart[i].qty += 1;
+          else cart.push({ name:n, qty:1, unit:"" });
+        });
+        window.store.save();
+        showToast("Eksikler sepete eklendi");
+      }
+
+      // ---------- PAGE: FRIDGE ----------
+      window.renderFridge = function(){
+        // Layout
+        const root = el("div", { class:"grid", style:"gap:14px" });
+
+        // Input card
+        const input = el("input", { type:"text", placeholder:"Malzeme ekle (örn. soğan, domates) — Enter ile ekle", id:"pantry-input" });
+        const addBtn = el("button", { class:"btn", onclick:()=>{ addPantryItem(input.value); input.value=""; input.focus(); } }, "Ekle");
+        const clearBtn = el("button", { class:"btn", onclick:()=>{ window.store.state.pantry = []; window.store.save(); document.dispatchEvent(new CustomEvent('pantryChanged')); } }, "Temizle");
+
+        const inputCard = el("div", { class:"card" }, [
+          el("div", { class:"kicker", text:"Buzdolabı" }),
+          el("div", { class:"row" }, [ input, addBtn, clearBtn ]),
+          el("div", { style:"height:10px" }),
+          pantryChips()
+        ]);
+        root.appendChild(inputCard);
+
+        // Filters (opsiyonel, payload’a gider)
+        const time = el("input", { type:"number", min:"5", step:"5", placeholder:"Maks. süre (dk) — opsiyonel", id:"flt-time" });
+        const servings = el("input", { type:"number", min:"1", step:"1", placeholder:"Porsiyon — opsiyonel", id:"flt-servings" });
+        const diet = el("select", { id:"flt-diet" }, [
+          el("option", { value:"", text:"Diyet tipi (yok)" }),
+          el("option", { value:"vejetaryen", text:"Vejetaryen" }),
+          el("option", { value:"vegan", text:"Vegan" }),
+          el("option", { value:"glutensiz", text:"Glutensiz" })
+        ]);
+        const genBtn = el("button", { id:"gen-btn", class:"btn primary" }, "Tarif Üret");
+        const filtersCard = el("div", { class:"card" }, [
+          el("div", { class:"kicker", text:"Filtreler" }),
+          el("div", { class:"row" }, [ time, servings, diet, genBtn ])
+        ]);
+        root.appendChild(filtersCard);
+
+        // Results
+        const resultsWrap = el("div", { class:"grid", id:"results-wrap" }, [ emptyNode("Henüz tarif üretilmedi.") ]);
+        root.appendChild(resultsWrap);
+
+        // Events
+        input.addEventListener("keydown", (e)=>{ if (e.key === "Enter") { addPantryItem(input.value); input.value=""; }});
+        const rerenderChips = ()=> {
+          const box = inputCard.querySelector("#pantry-chips");
+          const newNode = pantryChips();
+          if (box) box.replaceWith(newNode);
+          else inputCard.appendChild(newNode);
+        };
+        document.addEventListener("pantryChanged", rerenderChips, { once:false });
+
+        // Generate
+        genBtn.addEventListener("click", async ()=>{
+          const pantry = window.store.state.pantry || [];
+          if (!pantry.length) { showToast("Önce malzeme ekleyin"); input.focus(); return; }
+
+          // loading ui
+          genBtn.disabled = true; genBtn.textContent = "Üretiliyor..."; genBtn.insertAdjacentHTML("beforeend", ' <span class="spinner" aria-hidden="true"></span>');
+          resultsWrap.innerHTML = ""; resultsWrap.appendChild( loadingNode("Tarifler hazırlanıyor") );
+
+          try {
+            const payload = {
+              mode: "pantry",
+              pantry,
+              filters: {
+                maxTime: Number(time.value) || undefined,
+                servings: Number(servings.value) || undefined,
+                diet: diet.value || undefined
+              }
+            };
+            const out = await window.api.generateRecipe(payload);
+            resultsWrap.innerHTML = "";
+
+            // exact
+            if (Array.isArray(out.exactMatches) && out.exactMatches.length){
+              resultsWrap.appendChild( el("div", { class:"section-title" }, [
+                el("div", { text:"Tam Eşleşenler" })
+              ]) );
+              const grid = el("div", { class:"grid recipes" });
+              out.exactMatches.forEach(r => grid.appendChild( recipeCard(r) ));
+              resultsWrap.appendChild(grid);
+            }
+
+            // near
+            if (Array.isArray(out.nearMatches) && out.nearMatches.length){
+              resultsWrap.appendChild( el("div", { class:"section-title" }, [
+                el("div", { text:"Yakın Eşleşenler" }),
+                el("div", { class:"muted", text:"Eksikler sepete eklenebilir" })
+              ]) );
+              const grid2 = el("div", { class:"grid recipes" });
+              out.nearMatches.forEach(n => grid2.appendChild( recipeCard(n.recipe, { missing:n.missing }) ));
+              resultsWrap.appendChild(grid2);
+            }
+
+            if (!resultsWrap.children.length){
+              resultsWrap.appendChild( emptyNode("Sonuç bulunamadı. Filtreleri gevşetip tekrar deneyin.") );
+            }
+          } catch (e) {
+            console.error(e);
+            resultsWrap.innerHTML = ""; resultsWrap.appendChild( emptyNode("Hata oluştu. Lütfen tekrar deneyin.") );
+          } finally {
+            genBtn.disabled = false; genBtn.textContent = "Tarif Üret";
+          }
+        });
+
+        // İlk açılışta _lastRecipes varsa göster
+        const last = window.store.state._lastRecipes;
+        if (last && (last.exactMatches?.length || last.nearMatches?.length)) {
+          genBtn.click();
+        }
+
+        return root;
+      };
+
+      // ---------- PAGE: DIET ----------
+      window.renderDiet = function(){
+        const root = el("div", { class:"grid", style:"gap:14px" });
+
+        const height = el("input", { type:"number", min:"120", placeholder:"Boy (cm)" });
+        const weight = el("input", { type:"number", min:"30", placeholder:"Kilo (kg)" });
+        const age    = el("input", { type:"number", min:"10", placeholder:"Yaş" });
+        const sex    = el("select", {}, [
+          el("option", { value:"male", text:"Erkek" }),
+          el("option", { value:"female", text:"Kadın" })
+        ]);
+        const activity = el("select", {}, [
+          el("option", { value:"moderate", text:"Aktivite: Orta" }),
+          el("option", { value:"sedentary", text:"Düşük" }),
+          el("option", { value:"light", text:"Hafif" }),
+          el("option", { value:"high", text:"Yüksek" }),
+          el("option", { value:"athlete", text:"Sporcu" })
+        ]);
+        const goal = el("select", {}, [
+          el("option", { value:"maintain", text:"Hedef: Koru" }),
+          el("option", { value:"lose", text:"Zayıfla" }),
+          el("option", { value:"gain", text:"Kilo al" })
+        ]);
+        const genBtn = el("button", { class:"btn primary" }, "Plan Oluştur");
+
+        const form = el("div", { class:"card" }, [
+          el("div", { class:"kicker", text:"Diyet Planı" }),
+          el("div", { class:"row" }, [ height, weight, age ]),
+          el("div", { class:"row" }, [ sex, activity, goal, genBtn ])
+        ]);
+
+        const outWrap = el("div", { class:"grid", id:"diet-out" }, [ emptyNode("Hedeflerini gir ve 'Plan Oluştur' de.") ]);
+
+        genBtn.addEventListener("click", async ()=>{
+          const profile = {
+            height: Number(height.value), weight: Number(weight.value), age: Number(age.value),
+            sex: sex.value, activity: activity.value, goal: goal.value
+          };
+          genBtn.disabled = true; genBtn.textContent = "Hazırlanıyor..."; outWrap.innerHTML = ""; outWrap.appendChild(loadingNode());
+
+          try {
+            const res = await window.api.dietPlan(profile);
+            outWrap.innerHTML = "";
+
+            outWrap.appendChild( el("div", { class:"card" }, [
+              el("div", { class:"row" }, [
+                el("div", { class:"kicker", text:"Hedef Kalori" }),
+                el("div", { class:"right badge", text: (res?.targetKcal || 2000) + " kcal" })
+              ])
+            ]) );
+
+            if (Array.isArray(res?.dayPlan)) {
+              res.dayPlan.forEach(section => {
+                const box = el("div", { class:"card" }, [
+                  el("div", { class:"section-title" }, [
+                    el("div", { text: section.meal || "Öğün" })
+                  ])
+                ]);
+                const grid = el("div", { class:"grid recipes" });
+                (section.recipes || []).forEach(r => grid.appendChild( recipeCard(r) ));
+                box.appendChild(grid);
+                outWrap.appendChild(box);
+              });
+            } else {
+              outWrap.appendChild( emptyNode("Plan üretilemedi.") );
+            }
+          } catch (e) {
+            console.error(e);
+            outWrap.innerHTML = ""; outWrap.appendChild( emptyNode("Hata oluştu. Tekrar deneyin.") );
+          } finally {
+            genBtn.disabled = false; genBtn.textContent = "Plan Oluştur";
+          }
+        });
+
+        root.appendChild(form);
+        root.appendChild(outWrap);
+        return root;
+      };
+
+      // ---------- PAGE: MARKET ----------
+      window.renderMarket = function(){
+        const root = el("div", { class:"grid", style:"gap:14px" });
+
+        const makeListNode = ()=>{
+          const cart = window.store.state.cart || [];
+          if (!cart.length) return emptyNode("Sepet boş. Tarif eksiklerini ya da malzemeleri ekleyin.");
+          const list = el("div", { class:"grid" });
+          cart.forEach((it, idx) => {
+            const row = el("div", { class:"card row" }, [
+              el("div", { text: it.name }),
+              el("div", { class:"right row" }, [
+                el("button", { class:"btn small", onclick:()=>{ it.qty=Math.max(0,(it.qty||1)-1); if(it.qty===0) { cart.splice(idx,1); } window.store.save(); rerender(); } }, "−"),
+                el("span", { class:"badge", text: String(it.qty||1) + (it.unit?(" "+it.unit):"") }),
+                el("button", { class:"btn small", onclick:()=>{ it.qty=(it.qty||1)+1; window.store.save(); rerender(); } }, "+")
+              ])
+            ]);
+            list.appendChild(row);
+          });
+          return list;
+        };
+
+        const mergeBtn = el("button", { class:"btn", title:"Kaydedilen tariflerin malzemelerini listele" }, "Kaydedilen Tariflerden Listele");
+        const clearBtn = el("button", { class:"btn", onclick:()=>{ window.store.state.cart=[]; window.store.save(); rerender(); } }, "Sepeti Temizle");
+        const header = el("div", { class:"card row" }, [
+          el("div", { class:"kicker", text:"Alışveriş Listesi" }),
+          el("div", { class:"right row" }, [ mergeBtn, clearBtn ])
+        ]);
+
+        const listWrap = el("div", { id:"market-list" }, [ makeListNode() ]);
+
+        mergeBtn.addEventListener("click", async ()=>{
+          const saved = window.store.state.savedRecipes || [];
+          if (!saved.length) { showToast("Kayıtlı tarif yok"); return; }
+          const withIngredients = saved.map(r => ({ ...r, ingredients: App.parseIngredientsFromBody(r.body) }));
+          const { items } = await window.api.mergeShoppingList({ recipes: withIngredients });
+          // mevcut cart ile birleştir
+          const cart = window.store.state.cart || (window.store.state.cart = []);
+          items.forEach(it=>{
+            const key = App.utils.norm(it.name) + "|" + (it.unit||"");
+            const i = cart.findIndex(x => (App.utils.norm(x.name)+"|"+(x.unit||""))===key);
+            if (i>=0) cart[i].qty += Number(it.qty||1);
+            else cart.push({ name: it.name, qty: Number(it.qty||1), unit: it.unit||"" });
+          });
+          window.store.save();
+          rerender();
+          showToast("Liste güncellendi");
+        });
+
+        function rerender(){
+          const node = makeListNode();
+          const cur  = listWrap.firstChild;
+          if (cur) listWrap.replaceChild(node, cur);
+          else listWrap.appendChild(node);
+        }
+
+        root.appendChild(header);
+        root.appendChild(listWrap);
+        return root;
+      };
+    </script>
+  </body>
 </html>
